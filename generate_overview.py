@@ -3,7 +3,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import pycountry_convert as pc
+# import pycountry_convert as pc
 
 import weekly_covid
 covid = weekly_covid.read_weekly_covid()
