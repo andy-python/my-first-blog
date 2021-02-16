@@ -42,3 +42,6 @@ def post_edit(request, pk):
     else:
         form = PostForm(request.POST, instance=post)
     return render(request, 'blog/post_edit.html', {'form': form})
+
+def show_picture(request):
+    return render(request, 'blog/covid.html')
