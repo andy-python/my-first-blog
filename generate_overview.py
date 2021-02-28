@@ -1,56 +1,24 @@
-# Create script that creates covid overview data
-
 import pandas as pd
-import numpy as np
+from datetime import datetime
 import matplotlib.pyplot as plt
-# import pycountry_convert as pc
 
-import weekly_covid
-covid = weekly_covid.read_weekly_covid()
+from help_functions_dashboard import convert_week_year_into_date, plot_and_save_weekly_cases
 
+data_raw=pd.read_json('https://opendata.ecdc.europa.eu/covid19/nationalcasedeath/json')
+# convert string of year-week into last day of the week
+data_raw['year_week']=data_raw['year_week'].apply(convert_week_year_into_date)
+# set date as index
+data_raw.set_index('year_week', inplace = True)
 
-#===============================
-# Look at Germany
-germany = covid.loc[covid.geoId == 'DE']
-nl = covid.loc[covid.geoId == 'NL']
-es = covid.loc[covid.geoId == 'ES']
-uk = covid.loc[covid.geoId == 'UK']
-kr = covid.loc[covid.geoId == 'KR']
-#===============================
+# restrict to countries of interest and columns of interest
+countries_of_interest = ['DEU', 'KOR', 'GBR', 'NLD']#['DEU', 'KOR', 'ESP', 'GBR', 'NLD', 'FRA']
+columns_of_interest = ['indicator','country_code',  'weekly_count', 'rate_14_day']
 
-fig, _ = plt.subplots(1,2,figsize=(15,5), sharey = True)
+data_choice = data_raw.loc[data_raw.country_code.isin(countries_of_interest), columns_of_interest ]
 
-plt.subplot(1,2,1)
-# plt.margins(0.02)
+# look at cases 
+cases = data_choice.loc[data_choice.indicator == 'cases'].drop('indicator', axis=1)
+# look at death
+deaths = data_choice.loc[data_choice.indicator == 'deaths'].drop('indicator', axis=1)
 
-
-_=germany['14'].plot()
-_=es['14'].plot()
-_=nl['14'].plot()
-_=uk['14'].plot()
-_=kr['14'].plot()
-plt.legend(['de', 'es', 'nl', 'uk', 'kr'])
-
-plt.ylabel('Daily cases per 100K / flattened')
-plt.xlabel(' ')
-
-plt.title('Whole pandemie')
-# ========================
-plt.subplot(1,2,2)
-
-germany['14'].plot()
-_=es['14'].plot()
-_=nl['14'].plot()
-_=uk['14'].plot()
-_=kr['14'].plot()
-plt.legend(['Germany', 'Spain', 'Netherlands', 'UK', 'South Korea'])
-
-plt.xlim(['Oct 2020', max(uk.index)])
-plt.xlabel(' ')
-
-plt.title('Zoom in: Since October')
-
-
-plt.show()
-
-fig.savefig( 'test.jpg', bbox_inches='tight');
+plot_and_save_weekly_cases(cases, 'rate_14_day' )
